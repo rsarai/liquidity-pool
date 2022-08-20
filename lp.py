@@ -14,11 +14,9 @@ class ERC20:
         self.token_addr = addr
         self.total_supply = 1_000_000_000
         self.total = 0
-        # self.mappings = []
 
     def deposit(self, _from, value):
         self.total += value
-        # self.mappings.append({_from: value})
 
     def transfer(self, _to, value):
         self.total -= value
@@ -44,7 +42,7 @@ class Factory:
             self,
             token0.name,
             token1.name,
-            f"Uniswap V1 {token0.name}/{token1.name}",
+            f"{token0.name}/{token1.name}",
             symbol
         )
         self.token_to_exchange[token0.name] = new_exchange
@@ -63,13 +61,13 @@ class Factory:
 
 class Exchange:
     """
-        This is how uniswap calls the liquidity pools
+        Exchanges is how uniswap calls the liquidity pools
         https://docs.uniswap.org/protocol/V1/guides/connect-to-uniswap#exchange-interface
 
         Each exchange is associated with a single ERC20 token and hold a liquidity pool of ETH and the token.
-        - Done by maintaning the relationship eth_pool * token_pool = invariant
-        - This invariant is held constant during trades and only changes when liquidity is added or
-          removed from the market.
+        - The algorithm used is the constant product automated market maker
+            - which works by maintaning the relationship token_1 * token_2 = invariant
+            - This invariant is held constant during trades
 
     """
     def __init__(self, creator: Factory, token0_name: str, token1_name: str, name: str, symbol: str) -> None:
@@ -78,14 +76,27 @@ class Exchange:
         self.token1 = token1_name      # addresses or names. Actual tokens get stored in another place
         self.reserve0 = 0               # single storage slot
         self.reserve1 = 0               # single storage slot
-        self.fee = 0.3
+        self.fee = 0
 
         self.name = name
         self.symbol = symbol
         self.liquidity_providers = {}
         self.total_supply = 0
 
+    def info(self):
+        print(f"Exchange {self.name} ({self.symbol})")
+        print(f"Moedas: {self.token0}/{self.token1}")
+        print(f"Reservas: {self.token0} = {self.reserve0} | {self.token1} = {self.reserve1}")
+        k = self.reserve0 * self.reserve1
+        print(f"Invariante: {self.reserve0} * {self.reserve1} = {k}\n")
+
+    def doc(self):
+        print(f"Funcionalidades disponíveis:\n- Adicionar liquidez\n- Remover liquidez\n- Trocar tokens\n")
+
     def add_liquidity(self, _from, balance0, balance1, balance0Min, balance1Min):
+        """
+        You always need to add liquidity to both types of coins
+        """
         tokens = self.factory.exchange_to_tokens[self.name]
         assert tokens.get(self.token0) and tokens.get(self.token1), "Error"
         amount0, amount1 = self._add_liquidity(balance0, balance1, balance0Min, balance1Min)
@@ -100,8 +111,8 @@ class Exchange:
         """
         In practice, Uniswap applies a 0.30% fee to trades, which is added to
         reserves. As a result, each trade actually increases k. This functions
-        as a payout to LPs, which is realized when they burn their pool tokens
-        to withdraw their portion of total reserves.
+        as a payout to liquidity providers, for simplicity I have removed fee
+        related logic.
         """
         tokens = self.factory.exchange_to_tokens[self.name]
         assert tokens.get(self.token0) and tokens.get(self.token1), "Error"
@@ -252,6 +263,8 @@ class Exchange:
         """
         Given an input amount of an asset and pair reserves, returns the maximum output amount of the
         other asset
+
+        (reserve0 + amount_in_with_fee) * (reserve1 - amount_out) = reserve1 * reserve0
         """
         assert amount_in > 0, 'UniswapV2Library: INSUFFICIENT_INPUT_AMOUNT'
         assert self.reserve0 > 0 and self.reserve1 > 0, 'UniswapV2Library: INSUFFICIENT_LIQUIDITY'
@@ -263,6 +276,9 @@ class Exchange:
 
         return amount_out
 
+    def simulate_transaction(self, amount_t0):
+        result = self.get_amount_out(amount_t0)
+        print(f"{amount_t0} {self.token0} recebe {round(result, 2)} {self.token1}")
 
 """
 # References
@@ -291,4 +307,5 @@ https://medium.com/scalar-capital/uniswap-a-unique-exchange-f4ef44f807bf
 https://ethereum.org/pt-br/developers/tutorials/uniswap-v2-annotated-code/
 https://ethereum.org/en/developers/tutorials/uniswap-v2-annotated-code/#add-liquidity-flow
 https://jeiwan.net/posts/programming-defi-uniswapv2-1/
+https://docs.uniswap.org/protocol/V2/concepts/protocol-overview/ecosystem-participants
 """

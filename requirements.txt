@@ -2,3 +2,4 @@ pytest
 pytest-cov
 ipdb
 python-dateutil
+freezegun
