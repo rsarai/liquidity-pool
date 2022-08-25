@@ -9,7 +9,7 @@ def test_create_liquidity_pool():
 
     token = factory.exchange_to_tokens[lp.name]["test-coin"]
     assert token.token_addr == "0x111"
-    assert lp.name == "Uniswap V1 test-coin/ETH"
+    assert lp.name == "test-coin/ETH"
     assert lp.symbol == "TST1"
 
 def test_doesnt_create_two_equal_pools():

@@ -29,6 +29,12 @@ class StakingRewards:
     def doc(self):
         print("Funcionalidades disponíveis: \n- [public] Stake\n- [public] Withdraw\n- [public] Get rewards\n- [private] Add rewards")
 
+    def info(self):
+        print("Balanças: ", self.balances)
+        print("Reward rate: ", self.reward_rate)
+        print("Total staked: ", self.total_supply)
+        print("Última atualização: ", self.last_update_time)
+
     def add_rewards(self, reward, duration=None):
         if duration:
             self.rewards_duration = duration
@@ -87,6 +93,11 @@ class StakingRewards:
         )
 
     def earned(self, _from, debug=False):
+        """
+            This function could be implemented in a different way if smart contracts
+            were not optimized, since contracts have maximum size and operations inside
+            the contracts result in taxes to users, implementations avoid using for-loops
+        """
         if not self.user_reward_per_token_paid.get(_from):
             self.user_reward_per_token_paid[_from] = 0
 

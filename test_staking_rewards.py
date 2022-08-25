@@ -55,6 +55,7 @@ def test_earned_amount():
         res = st.earned("rsarai")
 
         # 5s after it should have 5 * reward rate
+        assert res > 0
         assert res == st.reward_rate * 5
 
     with freeze_time('2022-08-20 14:49:17'):
