@@ -10,3 +10,6 @@ $ docker run -p 8888:8888 -v $(pwd):/home/jovyan/work jupyter/minimal-notebook
 
 # Coverage
 pytest -vv --cov=. test_lp.py
+
+# Slides
+- https://docs.google.com/presentation/d/1dDXufg5D1p15-5-wbsrforzlQysw5g3_SKrpySP6kwQ/edit?usp=sharing
